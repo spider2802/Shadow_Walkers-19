@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Window</title>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('/templates/ai.jpg'); /* Specify the path to your background image */
+            background-size: cover; /* Cover the entire viewport */
+            font-family: Arial, sans-serif;
+            background-image:url(back2.gif);
+         
+        }
+
+        #chat-container {
+            height: 500px;
+            width: 500px; /* Adjust the width as needed */
+            border: 1px solid #ccc;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            padding: 10px;
+            background-image: url('/static/chat.jpg'); /* Background image */
+            background-size: cover; /* Cover the entire container */
+            background-repeat: no-repeat; /* No repeating of the image */
+            background-position: center; /* Center the background image */
+            margin: 50px auto;
+            border-radius: 10px;
+            backdrop-filter: blur(2px);
+            z-index: 9999;
+            /* overflow: hidden; */
+        }
+
+        .input-wrapper{
+          max-width: 500px;
+          margin: 0 auto;
+          
+        }
+        
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #111212; /* Light green background for messages */
+            border-radius: 10px;
+            color: #efeded; /* Black text color */
+            font-size: 16px;
+            width: 100%; /* Ensure messages have the same width as input */
+            margin-left: -9px; /* Align messages to the right */
+            margin-right: 0; /* Align messages to the right */
+           
+        }
+
+        #message-input {
+            width: 420px;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 20px; /* Rounded input field */
+            font-size: 16px;
+            background-color: #0c0c0c; /* Light gray background */
+            color: #faf4f4; /* Black text color */
+            outline: none; /* Remove default input outline */
+            padding-left: 10px; /* Add some padding to the left */
+            margin-left: -12px; /* Align input to the right */
+            margin-right:0px; /* Align input to the right */
+            margin-top:0px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px; /* Rounded button */
+            background-color: #080808; /* WhatsApp-like blue color */
+            color: #FFF; /* White text color */
+            font-size: 20px;
+            cursor: pointer;
+             margin-left: 7px; /*Add some space between input and button */
+        }
+
+        button .fa-solid-fa-microphone{
+            padding:20px;
+            
+        }
+        .btn2{
+            width: 100%;
+            margin-left: -10px;
+        }
+        
+
+        button:hover{
+            background-color: #f40808; /* Darker shade of blue on hover */
+        }
+    </style>
+</head>
+<body>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <body onload="displayInitialMessage()">
+   
+    <div id="chat-container">
+        <!-- Messages will be displayed here -->
+    </div>
+    
+    <div class="input-wrapper">
+        
+      <input type="text" id="message-input" placeholder="Type your message...">
+      <button  class="send" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+      <!-- <i class="fa-solid fa-paper-plane"></i> -->
+      <button class="btn2" onclick="startListening()"><i class="fa-solid fa-microphone"></i></button>
+      
+    </div>
+
+    <script>
+
+        var input=document.getElementById('message-input')
+        input.addEventListener("keypress",function(e) {
+            let inputText=document.getElementById('message-input').value
+            
+        
+            if(e.key==="Enter"){
+            console.log(inputText)
+            if (inputText) {
+                
+                sendMessage()
+            }
+            
+            e.preventDefault();
+            
+         }
+    })
+    
+
+    var input=document.getElementsByClassName('btn2')
+        input.addEventListener("keypress",function(e) {
+            let inputText=document.getElementById('btn2').value
+            
+        
+            if(e.key==="Enter"){
+            console.log(inputText)
+            if (inputText) {
+                
+                sendMessage()
+            }
+            
+            e.preventDefault();
+            
+         }
+    })
+        // JavaScript for sending messages and displaying responses
+        function sendMessage() {
+            var message = document.getElementById("message-input").value;
+            if(message){
+                displayMessage("You: " + message);
+            }
+            
+            document.getElementById("message-input").value = "";
+
+            // Send the message to the server for processing
+            fetch("/process_message", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                var response = data.response;
+                displayMessage("FRIDAY : " + response);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function displayMessage(message) {
+            var chatContainer = document.getElementById("chat-container");
+            var messageElement = document.createElement("div");
+            messageElement.textContent = message;
+            messageElement.classList.add("message");
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
+        }
+
+        // Function to start listening through microphone
+        function startListening() {
+            var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = function(event) {
+                var transcript = event.results[0][0].transcript;
+                document.getElementById("message-input").value = transcript;
+            }
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+            }
+
+            recognition.start();
+        }
+        function displayInitialMessage() {
+    displayMessage("FRIDAY: Hello Boss");
+}
+// Get reference to the button and output element
+const startBtn = document.getElementById('startBtn');
+const output = document.getElementById('output');
+
+// Create a new instance of SpeechRecognition
+const recognition = new webkitSpeechRecognition() || new SpeechRecognition();
+
+// Set properties for recognition
+recognition.lang = 'en-US'; // Set language
+recognition.continuous = true; // Enable continuous recognition
+
+// Define the event handler for when speech is recognized
+recognition.onresult = function(event) {
+  const transcript = event.results[event.results.length - 1][0].transcript;
+  output.textContent = transcript;
+}
+
+// Define event handler for when recognition is stopped
+recognition.onend = function() {
+  recognition.start(); // Restart recognition after it ends
+}
+
+// Add click event listener to the button to start recognition
+startBtn.addEventListener('click', function() {
+  recognition.start();
+});
+
+
+    </script>
+</body>
+</html>
