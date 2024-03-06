@@ -5,7 +5,7 @@ from config import key
 
 
 def chat1(chat):
-    api_key = "VF.DM.65e7143fad8fa15835b3bdde.KzKmRmRaVL8O5qLC"
+    api_key = "VF.DM.65e8baf40c2f4220de069122.xhoCfDAGOyGmvU2Q"
     user_id = "User_123"
     user_input = chat
     body = {"request": {"type": "text", "payload": user_input}}
